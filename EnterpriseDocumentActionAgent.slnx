@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EnterpriseDocumentActionAgent.Api/EnterpriseDocumentActionAgent.Api.csproj" />
+    <Project Path="src/EnterpriseDocumentActionAgent.Application/EnterpriseDocumentActionAgent.Application.csproj" />
+    <Project Path="src/EnterpriseDocumentActionAgent.Domain/EnterpriseDocumentActionAgent.Domain.csproj" />
+    <Project Path="src/EnterpriseDocumentActionAgent.Infrastructure/EnterpriseDocumentActionAgent.Infrastructure.csproj" />
+    <Project Path="src/EnterpriseDocumentActionAgent.Workers/EnterpriseDocumentActionAgent.Workers.csproj" />
+  </Folder>
+</Solution>
