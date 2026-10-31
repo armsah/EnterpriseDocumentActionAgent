@@ -1,44 +1,83 @@
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// ------------------------------------------------------------
+// 1. Register application services
+// ------------------------------------------------------------
+
+// Standardized API error responses.
+builder.Services.AddProblemDetails();
+
+// Health checks for application monitoring.
+builder.Services.AddHealthChecks();
+
+// OpenAPI endpoint discovery.
+// Swagger UI can be configured separately.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// ------------------------------------------------------------
+// 2. Build the application
+// ------------------------------------------------------------
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ------------------------------------------------------------
+// 3. Configure the HTTP request pipeline
+// ------------------------------------------------------------
 
-app.UseHttpsRedirection();
+// Handle unexpected exceptions with standardized responses.
+app.UseExceptionHandler();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// ------------------------------------------------------------
+// 4. Application information endpoint
+// ------------------------------------------------------------
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    return Results.Ok(new
+    {
+        Application = "Enterprise Document Action Agent",
+        Version = "1.0.0",
+        Framework = ".NET 8",
+        Status = "Running",
+        TimestampUtc = DateTimeOffset.UtcNow
+    });
 })
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+.WithName("GetApplicationInformation")
+.WithTags("System");
+
+// ------------------------------------------------------------
+// 5. Health-check endpoint
+// ------------------------------------------------------------
+
+app.MapHealthChecks("/health")
+   .WithName("GetApplicationHealth")
+   .WithTags("System");
+
+// ------------------------------------------------------------
+// 6. Readiness endpoint
+// ------------------------------------------------------------
+
+// For now, readiness confirms that the API process is running.
+// Future implementations will check PostgreSQL and other
+// required dependencies before reporting readiness.
+
+app.MapGet("/ready", () =>
+{
+    return Results.Ok(new
+    {
+        Status = HealthStatus.Healthy.ToString(),
+        TimestampUtc = DateTimeOffset.UtcNow
+    });
+})
+.WithName("GetApplicationReadiness")
+.WithTags("System");
+
+// ------------------------------------------------------------
+// 7. Start the application
+// ------------------------------------------------------------
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
